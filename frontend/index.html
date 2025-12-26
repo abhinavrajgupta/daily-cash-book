@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Cash Book</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>Daily Cash Book</h1>
+      <div class="date-display">
+        <label for="today-date">Date:</label>
+        <input type="date" id="today-date" />
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-button active" data-tab="today">Today</button>
+      <button class="tab-button" data-tab="summary">Summary</button>
+    </nav>
+
+    <main>
+      <!-- TODAY TAB -->
+      <section id="tab-today" class="tab active">
+        <div class="today-actions">
+          <button id="btn-add-income" class="primary income">Add Income</button>
+          <button id="btn-add-expense" class="primary expense">Add Expense</button>
+        </div>
+
+        <section class="today-entries">
+          <h2>Today's Entries</h2>
+          <ul id="entries-list" class="entries-list">
+            <!-- JS will render entries here -->
+          </ul>
+        </section>
+
+        <section class="totals">
+          <div class="total-item">
+            <span>Income</span>
+            <span id="total-income">₹0</span>
+          </div>
+          <div class="total-item">
+            <span>Expenses</span>
+            <span id="total-expenses">₹0</span>
+          </div>
+          <div class="total-item net">
+            <span>Net</span>
+            <span id="total-net">₹0</span>
+          </div>
+        </section>
+      </section>
+
+      <!-- SUMMARY TAB -->
+      <section id="tab-summary" class="tab">
+        <section class="summary-filters">
+          <h2>Summary</h2>
+          <div class="filter-row">
+            <label for="summary-from">From</label>
+            <input type="date" id="summary-from" />
+          </div>
+          <div class="filter-row">
+            <label for="summary-to">To</label>
+            <input type="date" id="summary-to" />
+          </div>
+          <button id="btn-summary-apply" class="primary">Show Summary</button>
+        </section>
+
+        <section class="summary-totals">
+          <div class="total-item">
+            <span>Total Income</span>
+            <span id="summary-income">₹0</span>
+          </div>
+          <div class="total-item">
+            <span>Total Expenses</span>
+            <span id="summary-expenses">₹0</span>
+          </div>
+          <div class="total-item net">
+            <span>Net</span>
+            <span id="summary-net">₹0</span>
+          </div>
+        </section>
+
+        <section class="summary-by-category">
+          <h3>By Category</h3>
+          <ul id="summary-category-list" class="entries-list">
+            <!-- JS renders category totals here -->
+          </ul>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <!-- ADD ENTRY MODAL -->
+  <div id="entry-modal-backdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <header class="modal-header">
+        <h2 id="modal-title">Add Entry</h2>
+      </header>
+      <div class="modal-body">
+        <form id="entry-form">
+          <input type="hidden" id="entry-id" />
+          <div class="form-row">
+            <label>Type</label>
+            <div class="type-toggle">
+              <button type="button" id="type-income" data-type="income" class="toggle-button active">Income</button>
+              <button type="button" id="type-expense" data-type="expense" class="toggle-button">Expense</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="entry-date">Date</label>
+            <input type="date" id="entry-date" required />
+          </div>
+
+          <div class="form-row">
+            <label>Category</label>
+            <div id="category-buttons" class="category-grid">
+              <!-- JS will render category buttons -->
+            </div>
+            <input type="hidden" id="entry-category" required />
+          </div>
+
+          <div class="form-row">
+            <label for="entry-amount">Amount</label>
+            <input type="number" id="entry-amount" min="0" step="0.01" inputmode="decimal" required />
+          </div>
+
+          <div class="form-row">
+            <label for="entry-note">Description (optional)</label>
+            <input type="text" id="entry-note" maxlength="80" />
+          </div>
+
+          <div id="form-error" class="form-error"></div>
+        </form>
+      </div>
+      <footer class="modal-footer">
+        <button id="btn-delete-entry" class="secondary danger hidden">Delete</button>
+        <div class="spacer"></div>
+        <button id="btn-cancel" class="secondary">Cancel</button>
+        <button id="btn-save-entry" class="primary">Save</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

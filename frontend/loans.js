@@ -49,7 +49,7 @@ function saveLoansGiven() {
 }
 
 function renderLoansGivenTable() {
-  const tbody = document.getElementById('loans-given-tbody');
+  const tbody = document.getElementById('loansGivenBody');
   tbody.innerHTML = '';
   
   loansGiven.forEach((loan, index) => {
@@ -146,7 +146,7 @@ function saveLoansToPay() {
 }
 
 function renderLoansToPayTable() {
-  const tbody = document.getElementById('loans-to-pay-tbody');
+  const tbody = document.getElementById('loansToPayBody');
   tbody.innerHTML = '';
   
   loansToPay.forEach((loan, index) => {

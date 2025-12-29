@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Management - Daily Cash Book</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            border-bottom-color: #007bff;
+            color: #007bff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .status-pending { background: #fff3cd; }
+        .status-partially_paid { background: #cfe2ff; }
+        .status-fully_paid { background: #d1e7dd; }
+        .status-in_danger { background: #f8d7da; }
+        .status-expected_late { background: #ffe5b4; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Loan Management System</h1>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('given')">Loans Given</button>
+            <button class="tab-button" onclick="switchTab('topay')">Loans To Pay</button>
+        </div>
+
+        <!-- LOANS GIVEN TAB -->
+        <div id="tab-given" class="tab-content active">
+            <div class="actions">
+                <button class="btn btn-primary" onclick="showAddLoanGivenModal()">➕ Add Loan Given</button>
+                <button class="btn btn-success" onclick="exportLoansGivenToExcel()">📥 Export to Excel</button>
+            </div>
+            <table id="loansGivenTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Amount (₹)</th>
+                        <th>Due Date</th>
+                        <th>Reminder</th>
+                        <th>Status</th>
+                        <th>Total Paid</th>
+                        <th>Remaining</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="loansGivenBody"></tbody>
+            </table>
+        </div>
+
+        <!-- LOANS TO PAY TAB -->
+        <div id="tab-topay" class="tab-content">
+            <div class="actions">
+                <button class="btn btn-primary" onclick="showAddLoanToPayModal()">➕ Add Loan To Pay</button>
+                <button class="btn btn-success" onclick="exportLoansToPayToExcel()">📥 Export to Excel</button>
+            </div>
+            <table id="loansToPayTable">
+                <thead>
+                    <tr>
+                        <th>Lender</th>
+                        <th>Original Principal (₹)</th>
+                        <th>Current Principal (₹)</th>
+                        <th>Interest Rate (%)</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="loansToPayBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add Loan Given Modal -->
+    <div id="addLoanGivenModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addLoanGivenModal')">&times;</span>
+            <h2>Add Loan Given</h2>
+            <form id="loanGivenForm">
+                <div class="form-group">
+                    <label>Borrower Name:</label>
+                    <input type="text" id="borrowerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹):</label>
+                    <input type="number" id="amount" required>
+                </div>
+                <div class="form-group">
+                    <label>Due Date:</label>
+                    <input type="date" id="dueDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="status">
+                        <option value="pending">Pending</option>
+                        <option value="partially_paid">Partially Paid</option>
+                        <option value="fully_paid">Fully Paid</option>
+                        <option value="in_danger">In Danger</option>
+                        <option value="expected_late">Expected Late</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Loan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Loan To Pay Modal -->
+    <div id="addLoanToPayModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addLoanToPayModal')">&times;</span>
+            <h2>Add Loan To Pay</h2>
+            <form id="loanToPayForm">
+                <div class="form-group">
+                    <label>Lender Name:</label>
+                    <input type="text" id="lenderName" required>
+                </div>
+                <div class="form-group">
+                    <label>Original Principal (₹):</label>
+                    <input type="number" id="originalPrincipal" required>
+                </div>
+                <div class="form-group">
+                    <label>Interest Rate (%):</label>
+                    <input type="number" step="0.01" id="interestRate" required>
+                </div>
+                <div class="form-group">
+                    <label>Due Date:</label>
+                    <input type="date" id="dueDatePay">
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="notesPay" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Loan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Record Payment Modal (for loans given) -->
+    <div id="recordPaymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('recordPaymentModal')">&times;</span>
+            <h2>Record Payment</h2>
+            <form id="paymentForm">
+                <input type="hidden" id="paymentLoanId">
+                <div class="form-group">
+                    <label>Payment Month:</label>
+                    <input type="month" id="paymentMonth" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount Paid (₹):</label>
+                    <input type="number" id="amountPaid" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Date:</label>
+                    <input type="date" id="paymentDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Record Payment To Pay Modal -->
+    <div id="recordPaymentToPayModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('recordPaymentToPayModal')">&times;</span>
+            <h2>Record Loan Payment</h2>
+            <form id="paymentToPayForm">
+                <input type="hidden" id="paymentToPayLoanId">
+                <div class="form-group">
+                    <label>Principal Paid (₹):</label>
+                    <input type="number" id="principalPaid" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Date:</label>
+                    <input type="date" id="paymentDatePay" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="paymentNotes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="loans.js"></script>
+</body>
+</html>

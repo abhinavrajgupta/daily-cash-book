@@ -5,6 +5,73 @@
   <title>Daily Cash Book</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Loan-specific styles */
+    .loan-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+    .loan-tab-button {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .loan-tab-button.active {
+      border-bottom-color: #007bff;
+      color: #007bff;
+    }
+    .loan-tab-content {
+      display: none;
+    }
+    .loan-tab-content.active {
+      display: block;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    table th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -19,6 +86,7 @@
     <nav class="tabs">
       <button class="tab-button active" data-tab="today">Today</button>
       <button class="tab-button" data-tab="summary">Summary</button>
+      <button class="tab-button" data-tab="loans">Loans</button>
     </nav>
 
     <main>
@@ -84,66 +152,120 @@
 
         <section class="summary-by-category">
           <h3>By Category</h3>
-          <ul id="summary-category-list" class="entries-list">
-            <!-- JS renders category totals here -->
-          </ul>
+          <div id="category-summary">
+            <!-- JS will render category breakdown -->
+          </div>
         </section>
       </section>
+
+      <!-- LOANS TAB -->
+      <section id="tab-loans" class="tab">
+        <div class="loan-tabs">
+          <button class="loan-tab-button active" data-loan-tab="loans-given">Loans Given</button>
+          <button class="loan-tab-button" data-loan-tab="loans-to-pay">Loans To Pay</button>
+        </div>
+
+        <!-- Loans Given Content -->
+        <div id="loans-given-content" class="loan-tab-content active">
+          <div class="actions">
+            <button id="btn-add-loan-given" class="btn btn-primary">➕ Add Loan Given</button>
+            <button id="btn-export-loans-given" class="btn btn-success">📥 Export to Excel</button>
+          </div>
+          <table id="loans-given-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Amount (₹)</th>
+                <th>Due Date</th>
+                <th>Reminder</th>
+                <th>Status</th>
+                <th>Total Paid</th>
+                <th>Remaining</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="loans-given-tbody">
+              <!-- JS will render loan entries -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Loans To Pay Content -->
+        <div id="loans-to-pay-content" class="loan-tab-content">
+          <div class="actions">
+            <button id="btn-add-loan-to-pay" class="btn btn-primary">➕ Add Loan To Pay</button>
+            <button id="btn-export-loans-to-pay" class="btn btn-success">📥 Export to Excel</button>
+          </div>
+          <table id="loans-to-pay-table">
+            <thead>
+              <tr>
+                <th>Lender</th>
+                <th>Original Principal (₹)</th>
+                <th>Current Principal (₹)</th>
+                <th>Interest Rate (%)</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="loans-to-pay-tbody">
+              <!-- JS will render loan entries -->
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
-  </div>
 
-  <!-- ADD ENTRY MODAL -->
-  <div id="entry-modal-backdrop" class="modal-backdrop hidden">
-    <div class="modal">
-      <header class="modal-header">
+    <!-- Modal for Add/Edit Entry -->
+    <div id="entry-modal" class="modal">
+      <div class="modal-content">
         <h2 id="modal-title">Add Entry</h2>
-      </header>
-      <div class="modal-body">
-        <form id="entry-form">
-          <input type="hidden" id="entry-id" />
-          <div class="form-row">
-            <label>Type</label>
-            <div class="type-toggle">
-              <button type="button" id="type-income" data-type="income" class="toggle-button active">Income</button>
-              <button type="button" id="type-expense" data-type="expense" class="toggle-button">Expense</button>
-            </div>
+        <input type="hidden" id="entry-id" />
+        
+        <div class="form-group">
+          <label>Type</label>
+          <div class="type-toggle">
+            <button id="btn-type-income" class="type-button active" data-type="income">Income</button>
+            <button id="btn-type-expense" class="type-button" data-type="expense">Expense</button>
           </div>
+        </div>
 
-          <div class="form-row">
-            <label for="entry-date">Date</label>
-            <input type="date" id="entry-date" required />
+        <div class="form-group">
+          <label for="entry-date">Date</label>
+          <input type="date" id="entry-date" required />
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <div id="category-buttons" class="category-buttons">
+            <!-- JS will render category buttons -->
           </div>
+          <input type="hidden" id="entry-category" required />
+        </div>
 
-          <div class="form-row">
-            <label>Category</label>
-            <div id="category-buttons" class="category-grid">
-              <!-- JS will render category buttons -->
-            </div>
-            <input type="hidden" id="entry-category" required />
-          </div>
+        <div class="form-group">
+          <label for="entry-amount">Amount</label>
+          <input type="number" id="entry-amount" min="0" step="0.01" inputmode="decimal" required />
+        </div>
 
-          <div class="form-row">
-            <label for="entry-amount">Amount</label>
-            <input type="number" id="entry-amount" min="0" step="0.01" inputmode="decimal" required />
-          </div>
+        <div class="form-group">
+          <label for="entry-note">Description (optional)</label>
+          <input type="text" id="entry-note" maxlength="80" />
+        </div>
 
-          <div class="form-row">
-            <label for="entry-note">Description (optional)</label>
-            <input type="text" id="entry-note" maxlength="80" />
-          </div>
+        <div id="form-error" class="form-error"></div>
 
-          <div id="form-error" class="form-error"></div>
-        </form>
+        <div class="modal-footer">
+          <button id="btn-delete-entry" class="secondary danger hidden">Delete</button>
+          <div class="spacer"></div>
+          <button id="btn-cancel" class="secondary">Cancel</button>
+          <button id="btn-save-entry" class="primary">Save</button>
+        </div>
       </div>
-      <footer class="modal-footer">
-        <button id="btn-delete-entry" class="secondary danger hidden">Delete</button>
-        <div class="spacer"></div>
-        <button id="btn-cancel" class="secondary">Cancel</button>
-        <button id="btn-save-entry" class="primary">Save</button>
-      </footer>
     </div>
-  </div>
 
-  <script src="app.js"></script>
+    <script src="app.js"></script>
+    <script src="loans.js"></script>
+  </div>
 </body>
 </html>

@@ -4,9 +4,11 @@ import os
 import psycopg2
 import psycopg2.extras
 from datetime import date
+from loans import loan_bp
 
 app = Flask(__name__)
 CORS(app)  # allow your static frontend
+app.register_blueprint(loan_bp)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 

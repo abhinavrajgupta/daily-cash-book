@@ -268,6 +268,23 @@ function setupFormHandlers() {
       showAddLoanGivenModal();
     });
   }
+
+      // Form submissions
+    const loanGivenForm = document.getElementById('loanGivenForm');
+    if (loanGivenForm) {
+        loanGivenForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addLoanGiven();
+        });
+    }
+    
+    const loanToPayForm = document.getElementById('loanToPayForm');
+    if (loanToPayForm) {
+        loanToPayForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addLoanToPay();
+        });
+    }
   
   // Add Loan To Pay button
   const btnAddLoanToPay = document.getElementById('btn-add-loan-to-pay');
